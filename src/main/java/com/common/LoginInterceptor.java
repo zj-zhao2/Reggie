@@ -13,7 +13,8 @@ import javax.servlet.http.HttpServletResponse;
 @Slf4j
 public class LoginInterceptor implements HandlerInterceptor {
 
-    public static final  AntPathMatcher PATH_MATCHER = new AntPathMatcher();
+    public static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         Long empId = (Long) request.getSession().getAttribute("employee");
@@ -31,7 +32,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         };
 
         for (String uri : uris) {
-            if (PATH_MATCHER.match(uri,requestURI)) {
+            if (PATH_MATCHER.match(uri, requestURI)) {
                 return true;
             }
         }
@@ -43,10 +44,9 @@ public class LoginInterceptor implements HandlerInterceptor {
         }
 
         //移动端
-        if(request.getSession().getAttribute("user") != null){
+        if (request.getSession().getAttribute("user") != null) {
             Long userId = (Long) request.getSession().getAttribute("user");
             BaseContext.setCurrentId(userId);
-
             return true;
         }
 

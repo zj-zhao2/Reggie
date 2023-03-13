@@ -129,7 +129,7 @@ public class DishController {
         dishService.deleteWithFlavor(ids);
 
         //由于删除时不知道是哪类菜，全部删除
-        Set keys =redisTemplate.keys("*");
+        Set keys =redisTemplate.keys("dish*");
         redisTemplate.delete(keys);
         return Result.success("菜品信息删除成功");
     }
@@ -184,7 +184,7 @@ public class DishController {
     public Result<List<DishDto>> getDishList(Dish dish) {
         List<DishDto> dishDtos = null;
         //查询Redis
-        String key = "dish_" + dish.getCategoryId() + "_" + dish.getStatus();
+        String key = "dish_" + dish.getCategoryId() + "_1";
         dishDtos = (List<DishDto>) redisTemplate.opsForValue().get(key);
         if (dishDtos != null) {
             return Result.success(dishDtos);

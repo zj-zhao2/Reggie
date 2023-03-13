@@ -12,10 +12,13 @@ import com.service.SetmealDishService;
 import com.service.SetmealService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @RestController
@@ -28,6 +31,8 @@ public class SetmealController {
     private CategoryService categoryService;
     @Autowired
     private SetmealDishService setmealDishService;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 新增套餐
@@ -38,6 +43,9 @@ public class SetmealController {
     @PostMapping
     public Result<String> save(@RequestBody SetmealDto setmealDto) {
         setmealService.saveWithDish(setmealDto);
+
+        String key = "setmeal_" + setmealDto.getCategoryId() + "_1";
+        redisTemplate.delete(key);
         return Result.success("新增套餐成功");
     }
 
@@ -51,7 +59,7 @@ public class SetmealController {
      */
     @GetMapping("/page")
     public Result<Page> page(int page, int pageSize, String name) {
-        //System.out.println(name);
+
         Page<Setmeal> pageInfo = new Page<>(page, pageSize);
         Page<SetmealDto> dtoPage = new Page<>();
         LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
@@ -86,6 +94,10 @@ public class SetmealController {
     @DeleteMapping
     public Result<String> delete(@RequestParam List<Long> ids) {
         setmealService.deleteSetmeal(ids);
+
+        Set keys = redisTemplate.keys("setmeal*");
+        redisTemplate.delete(keys);
+
         return Result.success("套餐删除成功");
     }
 
@@ -102,6 +114,9 @@ public class SetmealController {
             Setmeal setmeal = setmealService.getById(id);
             setmeal.setStatus(0);
             setmealService.updateById(setmeal);
+
+            String key = "setmeal_" + setmeal.getCategoryId() + "_1";
+            redisTemplate.delete(key);
         }
         return Result.success("");
     }
@@ -119,6 +134,10 @@ public class SetmealController {
             Setmeal setmeal = setmealService.getById(id);
             setmeal.setStatus(1);
             setmealService.updateById(setmeal);
+
+            String key = "setmeal_" + setmeal.getCategoryId() + "_1";
+            redisTemplate.delete(key);
+
         }
         return Result.success("");
     }
@@ -131,12 +150,19 @@ public class SetmealController {
      */
     @GetMapping("/list")
     public Result<List<SetmealDto>> list(Setmeal setmeal) {
+        List<SetmealDto> setmealDtos = null;
+        String key = "setmeal_" + setmeal.getCategoryId()+"_1";
+        setmealDtos = (List<SetmealDto>) redisTemplate.opsForValue().get(key);
+        if (setmealDtos != null) {
+            return Result.success(setmealDtos);
+        }
+
         LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(setmeal.getCategoryId() != null, Setmeal::getCategoryId, setmeal.getCategoryId());
         queryWrapper.eq(setmeal.getStatus() != null, Setmeal::getStatus, 1);
         List<Setmeal> setmeals = setmealService.list(queryWrapper);
 
-        List<SetmealDto> setmealDtos = setmeals.stream().map((item) -> {
+        setmealDtos = setmeals.stream().map((item) -> {
             SetmealDto setmealDto = new SetmealDto();
             BeanUtils.copyProperties(item, setmealDto);
             LambdaQueryWrapper<SetmealDish> wrapper = new LambdaQueryWrapper<>();
@@ -145,6 +171,8 @@ public class SetmealController {
             setmealDto.setSetmealDishes(dishList);
             return setmealDto;
         }).collect(Collectors.toList());
+
+        redisTemplate.opsForValue().set(key, setmealDtos, 60, TimeUnit.MINUTES);
 
         return Result.success(setmealDtos);
     }

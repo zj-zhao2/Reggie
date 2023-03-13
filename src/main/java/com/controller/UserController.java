@@ -94,6 +94,7 @@ public class UserController {
                 user.setStatus(1);
                 userService.save(user);
             }
+            session.setAttribute("user", user.getId());
             redisTemplate.delete(phone);
             return Result.success(user);
         }
