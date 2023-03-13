@@ -1,5 +1,5 @@
 server:
-  port: 80
+  port: 8080
 spring:
   datasource:
     druid:
@@ -7,6 +7,12 @@ spring:
       url: jdbc:mysql://localhost:3306/reggie?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
       username: root
       password: 123456
+  redis:
+    host: 47.115.227.144
+    #host: localhost
+    password: 123456
+    port: 6379
+    database: 0
 
 mybatis-plus:
   configuration:
