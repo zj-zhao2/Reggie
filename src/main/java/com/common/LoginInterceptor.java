@@ -28,7 +28,11 @@ public class LoginInterceptor implements HandlerInterceptor {
                 "/front/**",
                 "/common/**",
                 "/user/sendMsg",
-                "/user/login"
+                "/user/login",
+                "/doc.html",
+                "/webjars/**",
+                "/swagger-resources",
+                "/v2/api-docs"
         };
 
         for (String uri : uris) {

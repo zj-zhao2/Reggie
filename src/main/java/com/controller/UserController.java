@@ -5,6 +5,10 @@ import com.common.Result;
 import com.domain.User;
 import com.service.UserService;
 import com.utils.ValidateCodeUtils;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -21,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 @RestController
 @RequestMapping("/user")
 @Slf4j
+@Api(tags = "用户接口")
 public class UserController {
 
     @Autowired
@@ -36,6 +41,10 @@ public class UserController {
      * @return
      */
     @PostMapping("/sendMsg")
+    @ApiOperation("发送验证码接口")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "user", value = "用户信息", required = true)
+    })
     public Result<String> sendMsg(@RequestBody User user, HttpSession session) {
         //获取手机号
         String phone = user.getPhone();
@@ -68,6 +77,7 @@ public class UserController {
      * @return
      */
     @PostMapping("/login")
+    @ApiOperation("登录接口")
     public Result<User> login(@RequestBody Map map, HttpSession session) {
         log.info(map.toString());
 
@@ -108,6 +118,7 @@ public class UserController {
      * @return
      */
     @PostMapping("/loginout")
+    @ApiOperation("登出接口")
     public Result<String> logout(HttpServletRequest request) {
         request.getSession().removeAttribute("user");
         return Result.success("退出成功");
